@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daglig Kontroll - 2-akslet Lastebil</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #64748b;
+            --ok: #16a34a;
+            --fail: #dc2626;
+            --na: #475569;
+            --na-bg: #e2e8f0;
+            --border: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .progress-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 6px;
+        }
+
+        .step-dot {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+        }
+
+        .step-dot.done {
+            background: var(--ok);
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--bg);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 14px;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f8fafc;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            background: #ffffff;
+        }
+
+        .check-item {
+            padding: 14px 0;
+            border-bottom: 1px solid var(--bg);
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .check-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .check-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .check-desc {
+            font-size: 0.8rem;
+            color: var(--muted);
+            display: block;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .status-btn {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .status-btn[data-val="ok"].active {
+            background: var(--ok);
+            color: white;
+            border-color: var(--ok);
+        }
+
+        .status-btn[data-val="fail"].active {
+            background: var(--fail);
+            color: white;
+            border-color: var(--fail);
+        }
+
+        .status-btn[data-val="na"].active {
+            background: var(--na);
+            color: white;
+            border-color: var(--na);
+        }
+
+        .note-input {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #fca5a5;
+            background: #fef2f2;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .note-input.visible {
+            display: block;
+        }
+
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-main {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-prev {
+            background: var(--na-bg);
+            color: var(--text);
+            flex: 0.5;
+        }
+
+        .btn-ok-all {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: #f0fdf4;
+            color: var(--ok);
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--fail);
+            border: 1px solid var(--fail);
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+
+        #report-text {
+            width: 100%;
+            height: 280px;
+            margin: 12px 0;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Daglig Kontroll (2-akslet)</h1>
+    <span class="progress-badge" id="step-badge">Side 1 av 7</span>
+</header>
+
+<div class="container">
+    <div class="step-indicator" id="step-dots"></div>
+    <div id="page-content"></div>
+</div>
+
+<script>
+//<![CDATA[
+const checklistGroups = [
+    {
+        title: "Steg 1: Dekk, Hjul og Understell",
+        items: [
+            { id: "dekk_foran", title: "Foraksel: Dekk og mønsterdybde", desc: "Min. 1,6 mm (5 mm vinter). Sjekk lufttrykk og skader." },
+            { id: "dekk_bak", title: "Drivaksel (tvilling): Dekk og stein", desc: "Sjekk mønster, lufttrykk og stein mellom tvillinghjul." },
+            { id: "hjulbolter", title: "Felger og hjulbolter", desc: "Ingen synlige sprekker eller løse bolter/indikatorer." },
+            { id: "fjaering", title: "Luftfjæring og belger", desc: "Bilen står rett, ingen luftlekkasje fra belger." }
+        ]
+    },
+    {
+        title: "Steg 2: Bremser og Luftsystem",
+        items: [
+            { id: "lufttrykk", title: "Lufttrykk og lekkasjetest", desc: "Rask oppbygging av trykk, ingen hørbar lekkasje." },
+            { id: "parkbrems", title: "Drifts- og parkeringsbrems", desc: "Funksjonstest ved igangkjøring, holder bilen i ro." }
+        ]
+    },
+    {
+        title: "Steg 3: Lys, Sikt og Førerhus",
+        items: [
+            { id: "lys", title: "Utvendig belysning og refleks", desc: "Nær/fjernlys, blinklys, bremselys, markeringslys og skiltlys." },
+            { id: "sikt", title: "Frontrute, pussere og spylervæske", desc: "Hele viskerblader, nok væske og fri sikt i rute." },
+            { id: "speil", title: "Speil og ryggekamera", desc: "Rene, hele og riktig justert (inkl. blindsone- og fortauspeil)." },
+            { id: "varsellamper", title: "Instrumentpanel og varsellamper", desc: "Ingen røde eller kritiske gule varsellamper lyser." }
+        ]
+    },
+    {
+        title: "Steg 4: Motor og Væsker",
+        items: [
+            { id: "vaesker", title: "Olje, kjølevæske og AdBlue", desc: "Nivåer innenfor merking, ingen synlig drypping under bil." }
+        ]
+    },
+    {
+        title: "Steg 5: Påbygg, Last og Utstyr",
+        items: [
+            { id: "last", title: "Lastesikring og dører/lem", desc: "Last er forsvarlig sikret, skapdører/lem er forsvarlig låst." },
+            { id: "baklofter", title: "Bakløfter / Kran (hvis montert)", desc: "Funksjonstest, ingen oljelekkasje, sikkerhetslås ok." },
+            { id: "sikkerhet", title: "Påbudt sikkerhetsutstyr", desc: "Refleksvest, varseltrekant, brannslukker og førstehjelp." },
+            { id: "kjetting", title: "Vinterutrustning (sesong)", desc: "Riktig antall kjettinger (min. 3 stk på 2-akslet) og spade." },
+            { id: "dokumenter", title: "Dokumenter og fartsskriver", desc: "Vognkort del 1, førerkort, YSK, sjåførkort og bom-brikke." }
+        ]
+    }
+];
+
+function getTodayDate() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return year + "-" + month + "-" + day;
+}
+
+let currentStep = 0;
+const totalSteps = checklistGroups.length + 2;
+
+let state = {
+    regnr: "",
+    dato: getTodayDate(),
+    km: "",
+    sjafor: "",
+    generelt: "",
+    checks: {}
+};
+
+function loadState() {
+    try {
+        const saved = localStorage.getItem('lastebil_kontroll_v4');
+        if (saved) {
+            state = JSON.parse(saved);
+        }
+    } catch (e) {}
+}
+
+function saveState() {
+    try {
+        localStorage.setItem('lastebil_kontroll_v4', JSON.stringify(state));
+    } catch (e) {}
+}
+
+function escapeHtml(str) {
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function renderDots() {
+    const dotsContainer = document.getElementById('step-dots');
+    dotsContainer.innerHTML = "";
+    for (let i = 0; i < totalSteps; i++) {
+        const dot = document.createElement('div');
+        let cls = 'step-dot';
+        if (i === currentStep) cls += ' active';
+        else if (i < currentStep) cls += ' done';
+        dot.className = cls;
+        dot.onclick = function() { goToStep(i); };
+        dotsContainer.appendChild(dot);
+    }
+    document.getElementById('step-badge').innerText = "Side " + (currentStep + 1) + " av " + totalSteps;
+}
+
+function goToStep(step) {
+    if (step >= 0 && step < totalSteps) {
+        currentStep = step;
+        renderPage();
+        window.scrollTo(0, 0);
+    }
+}
+
+function renderPage() {
+    renderDots();
+    const container = document.getElementById('page-content');
+
+    // Side 0: grunninfo
+    if (currentStep === 0) {
+        container.innerHTML =
+            '<div class="">' +
+                '<h2>Kjøretøy og Sjåfør</h2>' +
+                '<div class="input-group">' +
+                    '<label for="regnr">Registreringsnummer</label>' +
+                    '<input id="regnr" type="text" value="' + (state.regnr || '') + '" ' +
+                    'oninput="state.regnr=this.value; saveState();">' +
+                '</div>' +
+                '<div class="input-group">' +
+                    '<label for="dato">Dato</label>' +
+                    '<input id="dato" type="date" value="' + (state.dato || getTodayDate()) + '" ' +
+                    'oninput="state.dato=this.value; saveState();">' +
+                '</div>' +
+                '<div class="input-group">' +
+                    '<label for="km">Kilometerstand</label>' +
+                    '<input id="km" type="number" value="' + (state.km || '') + '" ' +
+                    'oninput="state.km=this.value; saveState();">' +
+                '</div>' +
+                '<div class="input-group">' +
+                    '<label for="sjafor">Sjåfør</label>' +
+                    '<input id="sjafor" type="text" value="' + (state.sjafor || '') + '" ' +
+                    'oninput="state.sjafor=this.value; saveState();">' +
+                '</div>' +
+                '<div class="nav-bar">' +
+                    '<button class="btn-main btn-primary" onclick="goToStep(1)">Start kontroll (Neste side) →</button>' +
+                '</div>' +
+            '</div>';
+        return;
+    }
+
+    // Sider med sjekklister
+    if (currentStep >= 1 && currentStep <= checklistGroups.length) {
+        const groupIndex = currentStep - 1;
+        const group = checklistGroups[groupIndex];
+        let itemsHtml = "";
+
+        for (let i = 0; i < group.items.length; i++) {
+            const item = group.items[i];
+            const current = state.checks[item.id] || { status: null, note: "" };
+            const noteVisible = current.status === 'fail' ? ' visible' : '';
+
+            itemsHtml +=
+                '<div class="check-item">' +
+                    '<div class="check-header">' +
+                        '<div class="check-title">' +
+                            item.title +
+                            '<span class="check-desc">' + item.desc + '</span>' +
+                        '</div>' +
+                        '<div class="btn-group">' +
+                            '<button class="status-btn ' + (current.status === 'ok' ? 'active' : '') + '" ' +
+                                'data-val="ok" onclick="setStatus(\'' + item.id + '\', \'ok\')">OK</button>' +
+                            '<button class="status-btn ' + (current.status === 'fail' ? 'active' : '') + '" ' +
+                                'data-val="fail" onclick="setStatus(\'' + item.id + '\', \'fail\')">Avvik</button>' +
+                            '<button class="status-btn ' + (current.status === 'na' ? 'active' : '') + '" ' +
+                                'data-val="na" onclick="setStatus(\'' + item.id + '\', \'na\')">I/A</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<textarea id="note_' + item.id + '" class="note-input' + noteVisible + '" ' +
+                        'placeholder="Beskriv avviket..." ' +
+                        'oninput="setNote(\'' + item.id + '\', this.value)">' +
+                        (current.note || '') +
+                    '</textarea>' +
+                '</div>';
+        }
+
+        container.innerHTML =
+            '<div class="card">' +
+                '<h2>' + group.title + '</h2>' +
+                '<button class="btn-ok-all" onclick="markGroupOk(' + groupIndex + ')">✓ Sett alle på denne siden til OK</button>' +
+                itemsHtml +
+                '<div class="nav-bar">' +
+                    '<button class="btn-main btn-prev" onclick="goToStep(' + (currentStep - 1) + ')">← Forrige</button>' +
+                    '<button class="btn-main btn-primary" onclick="goToStep(' + (currentStep + 1) + ')">Neste side →</button>' +
+                '</div>' +
+            '</div>';
+        return;
+    }
+
+    // Siste side: oppsummering
+    if (currentStep === totalSteps - 1) {
+        const reportText = buildReportText();
+        container.innerHTML =
+            '<div class="card">' +
+                '<h2>Oppsummering og Rapport</h2>' +
+                '<div class="input-group">' +
+                    '<label for="generelt">Generelle merknader (valgfritt)</label>' +
+                    '<textarea id="generelt" rows="4" ' +
+                        'oninput="state.generelt=this.value; saveState(); updateReportBox();">' +
+                        (state.generelt || '') +
+                    '</textarea>' +
+                '</div>' +
+                '<div class="input-group">' +
+                    '<label for="report-text">Ferdig kontrollrapport:</label>' +
+                    '<textarea id="report-text" readonly>' + escapeHtml(reportText) + '</textarea>' +
+                '</div>' +
+                '<button id="copy-btn" class="btn-main btn-primary" onclick="copyReport()">Kopier rapport til utklippstavle</button>' +
+                '<div class="nav-bar">' +
+                    '<button class="btn-main btn-prev" onclick="goToStep(' + (currentStep - 1) + ')">← Forrige</button>' +
+                '</div>' +
+                '<button class="btn-danger" onclick="resetForm()">Nullstill hele skjemaet for ny kontroll</button>' +
+            '</div>';
+    }
+}
+
+function setStatus(id, status) {
+    if (!state.checks[id]) state.checks[id] = { status: null, note: "" };
+    state.checks[id].status = status;
+    saveState();
+    renderPage();
+    if (status === 'fail') {
+        setTimeout(function() {
+            const input = document.getElementById("note_" + id);
+            if (input) input.focus();
+        }, 50);
+    }
+}
+
+function setNote(id, text) {
+    if (!state.checks[id]) state.checks[id] = { status: 'fail', note: "" };
+    state.checks[id].note = text;
+    saveState();
+}
+
+function markGroupOk(groupIndex) {
+    const items = checklistGroups[groupIndex].items;
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (!state.checks[item.id] || !state.checks[item.id].status) {
+            state.checks[item.id] = { status: 'ok', note: "" };
+        }
+    }
+    saveState();
+    renderPage();
+}
+
+function buildReportText() {
+    let text = "DAGLIG KONTROLL - 2-AKSLET LASTEBIL\n";
+    text += "====================================\n";
+    text += "Dato:     " + (state.dato || "Ikke oppgitt") + "\n";
+    text += "Reg.nr:   " + (state.regnr ? state.regnr.toUpperCase() : "Ikke oppgitt") + "\n";
+    text += "Km-stand: " + (state.km ? state.km + " km" : "Ikke oppgitt") + "\n";
+    text += "Sjåfør:   " + (state.sjafor || "Ikke oppgitt") + "\n";
+    text += "====================================\n\n";
+
+    let fails = [];
+    let okCount = 0;
+    let naCount = 0;
+    let unanswered = 0;
+
+    for (let g = 0; g < checklistGroups.length; g++) {
+        const group = checklistGroups[g];
+        for (let i = 0; i < group.items.length; i++) {
+            const item = group.items[i];
+            const c = state.checks[item.id];
+            if (!c || !c.status) {
+                unanswered++;
+            } else if (c.status === 'ok') {
+                okCount++;
+            } else if (c.status === 'na') {
+                naCount++;
+            } else if (c.status === 'fail') {
+                fails.push("- " + item.title + ": " + (c.note || "Ingen kommentar"));
+            }
+        }
+    }
+
+    text += "STATUS OPPSUMMERING:\n";
+    text += "OK: " + okCount + " | Avvik: " + fails.length + " | I/A: " + naCount + " | Ikke sjekket: " + unanswered + "\n\n";
+
+    if (fails.length > 0) {
+        text += "[!] REGISTRERTE AVVIK:\n";
+        text += fails.join("\n") + "\n\n";
+    } else {
+        text += "[OK] INGEN AVVIK REGISTRERT.\n\n";
+    }
+
+    if (state.generelt && state.generelt.trim() !== "") {
+        text += "MERKNADER:\n" + state.generelt.trim() + "\n";
+    }
+
+    return text;
+}
+
+function updateReportBox() {
+    const box = document.getElementById('report-text');
+    if (box) box.value = buildReportText();
+}
+
+function copyReport() {
+    const textarea = document.getElementById('report-text');
+    textarea.select();
+    textarea.setSelectionRange(0, 99999);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textarea.value);
+    } else {
+        document.execCommand('copy');
+    }
+    document.getElementById('copy-btn').innerHTML = "Kopiert! ✓";
+}
+
+function resetForm() {
+    if (confirm("Er du sikker på at du vil nullstille hele kontrollskjemaet?")) {
+        state = {
+            regnr: state.regnr,
+            dato: getTodayDate(),
+            km: "",
+            sjafor: state.sjafor,
+            generelt: "",
+            checks: {}
+        };
+        saveState();
+        goToStep(0);
+    }
+}
+
+loadState();
+renderPage();
+//]]>
+</script>
+</body>
+</html>
