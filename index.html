@@ -6,6 +6,7 @@
     <title>Daglig Kontroll - 2-akslet Lastebil</title>
     <style>
         :root {
+            color-scheme: light;
             --primary: #1e3a8a;
             --primary-light: #3b82f6;
             --bg: #f1f5f9;
@@ -17,6 +18,33 @@
             --na: #475569;
             --na-bg: #e2e8f0;
             --border: #cbd5e1;
+            --input-bg: #f8fafc;
+            --input-focus: #ffffff;
+            --note-bg: #fef2f2;
+            --note-border: #fca5a5;
+            --ok-bg: #f0fdf4;
+            --ok-border: #bbf7d0;
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --primary: #1e293b;
+            --primary-light: #60a5fa;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --ok: #22c55e;
+            --fail: #f87171;
+            --na: #64748b;
+            --na-bg: #334155;
+            --border: #475569;
+            --input-bg: #0f172a;
+            --input-focus: #111c30;
+            --note-bg: #3b2028;
+            --note-border: #7f1d1d;
+            --ok-bg: #153322;
+            --ok-border: #166534;
         }
 
         * {
@@ -44,11 +72,35 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
 
         header h1 {
             font-size: 1.15rem;
             font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.14);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .theme-toggle:focus-visible {
+            outline: 2px solid white;
+            outline-offset: 2px;
         }
 
         .progress-badge {
@@ -57,6 +109,7 @@
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .container {
@@ -97,12 +150,17 @@
             border: 1px solid var(--border);
         }
 
-        .card h2 {
+        .card h2,
+        #page-content > div > h2 {
             font-size: 1.1rem;
-            color: var(--primary);
+            color: var(--primary-light);
             margin-bottom: 14px;
             padding-bottom: 8px;
             border-bottom: 2px solid var(--bg);
+        }
+
+        #page-content > div > h2 {
+            color: var(--text);
         }
 
         .input-group {
@@ -124,14 +182,15 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 1rem;
-            background: #f8fafc;
+            background: var(--input-bg);
+            color: var(--text);
         }
 
         .input-group input:focus,
         .input-group textarea:focus {
             outline: none;
             border-color: var(--primary-light);
-            background: #ffffff;
+            background: var(--input-focus);
         }
 
         .check-item {
@@ -176,7 +235,8 @@
             padding: 10px 14px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            background: white;
+            background: var(--input-bg);
+            color: var(--text);
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
@@ -204,11 +264,16 @@
             width: 100%;
             margin-top: 10px;
             padding: 10px;
-            border: 1px solid #fca5a5;
-            background: #fef2f2;
+            border: 1px solid var(--note-border);
+            background: var(--note-bg);
+            color: var(--text);
             border-radius: 6px;
             font-size: 0.9rem;
             display: none;
+        }
+
+        .note-input::placeholder {
+            color: var(--muted);
         }
 
         .note-input.visible {
@@ -247,9 +312,9 @@
             width: 100%;
             padding: 10px;
             margin-bottom: 12px;
-            background: #f0fdf4;
+            background: var(--ok-bg);
             color: var(--ok);
-            border: 1px solid #bbf7d0;
+            border: 1px solid var(--ok-border);
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
@@ -276,7 +341,32 @@
             font-size: 0.85rem;
             border: 1px solid var(--border);
             border-radius: 8px;
-            background: #f8fafc;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 12px;
+            }
+
+            header h1 {
+                font-size: 1rem;
+            }
+
+            .header-actions {
+                gap: 5px;
+            }
+
+            .theme-toggle {
+                padding: 6px 8px;
+                font-size: 0.75rem;
+            }
+
+            .progress-badge {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
@@ -284,7 +374,10 @@
 
 <header>
     <h1>Daglig Kontroll (2-akslet)</h1>
-    <span class="progress-badge" id="step-badge">Side 1 av 7</span>
+    <div class="header-actions">
+        <button class="theme-toggle" id="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Bytt til mørk modus">🌙 Mørk modus</button>
+        <span class="progress-badge" id="step-badge">Side 1 av 7</span>
+    </div>
 </header>
 
 <div class="container">
@@ -370,6 +463,38 @@ function loadState() {
 function saveState() {
     try {
         localStorage.setItem('lastebil_kontroll_v4', JSON.stringify(state));
+    } catch (e) {}
+}
+
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+    const button = document.getElementById('theme-toggle');
+    if (button) {
+        button.textContent = isDark ? '☀️ Lys modus' : '🌙 Mørk modus';
+        button.setAttribute('aria-label', isDark ? 'Bytt til lys modus' : 'Bytt til mørk modus');
+    }
+}
+
+function initializeTheme() {
+    let theme;
+    try {
+        theme = localStorage.getItem('lastebil_kontroll_theme');
+    } catch (e) {}
+
+    if (theme !== 'dark' && theme !== 'light') {
+        theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+    }
+    applyTheme(theme);
+}
+
+function toggleTheme() {
+    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    try {
+        localStorage.setItem('lastebil_kontroll_theme', nextTheme);
     } catch (e) {}
 }
 
@@ -626,6 +751,7 @@ function resetForm() {
     }
 }
 
+initializeTheme();
 loadState();
 renderPage();
 //]]>
